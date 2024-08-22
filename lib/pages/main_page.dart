@@ -10,29 +10,37 @@ class MainPage extends StatelessWidget {
 
   void _showAddPlaylistDialog(BuildContext context) {
     var textController = TextEditingController();
+    String error = "";
     openDialog(
       context, 
       "Add Playlist",
-      Column(
-      children: [
-
-          TextField(
-            controller: textController,
-            decoration: const InputDecoration(
-              labelText: "Playlist Name",
-              border: OutlineInputBorder(),
+      StatefulBuilder(
+        builder: (context, setState) => Column(
+          children: [
+            TextField(
+              controller: textController,
+              decoration: const InputDecoration(
+                labelText: "Playlist Name",
+                border: OutlineInputBorder(),
+              ),
             ),
-          ),
-
-          TextButton(
-            onPressed: () async {
-              await AppDatabase.instance.addPlaylist(textController.text);
-              Navigator.pop(context);
-            },
-            child: const Text("Add")
-          )
-
-        ]
+            TextButton(
+              onPressed: () async {
+                if (textController.text.isEmpty) {
+                  setState(() {
+                    error = "Playlist name can't be empty";
+                  });
+                  return;
+                }
+                await AppDatabase.instance.addPlaylist(textController.text);
+                Navigator.pop(context);
+              },
+              child: const Text("Add")
+            ),
+            
+            
+          ]
+        ),
       ) 
     );
   }
