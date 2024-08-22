@@ -22,7 +22,16 @@ class ExerciseBase {
 
   // Searches for exercises by name in the database.
   Future<List<DatabaseExercise>> searchExercisesByName(String name) async {
-    var data = await _db.query("exercises", where: "LOWER(exercise) like LOWER(?)", whereArgs: ["%$name%"]);
+    List<String> wheres = [];
+    List<String> args = [];
+    if (name.isNotEmpty) {
+      var keyWords = name.split(" ");
+      for (var keyWord in keyWords) {
+        wheres.add("LOWER(exercise) like LOWER(?)");
+        args.add("%$keyWord%");
+      }
+    }
+    var data = await _db.query("exercises", where: wheres.join(" AND "), whereArgs: args);
     var exercises = databaseExercisesFromMap(data);
     return exercises;
   }

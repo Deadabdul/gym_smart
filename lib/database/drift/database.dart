@@ -74,8 +74,10 @@ class AppDatabase extends _$AppDatabase {
     await into(playlists).insert(PlaylistsCompanion.insert(name: name));
   }
 
-  Future<void> addExerciseToPlaylist(int playlistId, int exerciseId) async {
-    await into(playlistExercises).insert(PlaylistExercisesCompanion.insert(playlistId: playlistId, exerciseId: exerciseId));
+  Future<void> addExerciseToPlaylist(int playlistId, String exercise) async {
+    var id = await into(exercises).insert(ExercisesCompanion.insert(exercise: exercise));
+
+    await into(playlistExercises).insert(PlaylistExercisesCompanion.insert(playlistId: playlistId, exerciseId: id));
   }
 
   Future<void> addSet(int exerciseId, int reps, int weight) async {
@@ -86,7 +88,6 @@ class AppDatabase extends _$AppDatabase {
     return select(playlists).watch();
   }
   Stream<List<Exercise>> getExercisesFromPlaylist(int playlistId)  {
-
     return (select(exercises).join([
       leftOuterJoin(playlistExercises, playlistExercises.exerciseId.equalsExp(exercises.id))
     ])..where(playlistExercises.playlistId.equals(playlistId)))

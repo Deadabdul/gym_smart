@@ -2,6 +2,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gym_smart/database/drift/database.dart';
+import 'package:gym_smart/pages/playlist_page.dart';
 import 'package:gym_smart/utils/utils.dart';
 
 class MainPage extends StatelessWidget {
@@ -24,6 +25,7 @@ class MainPage extends StatelessWidget {
                 border: OutlineInputBorder(),
               ),
             ),
+            Text(error, style: const TextStyle(color: Colors.red),),
             TextButton(
               onPressed: () async {
                 if (textController.text.isEmpty) {
@@ -35,8 +37,14 @@ class MainPage extends StatelessWidget {
                 await AppDatabase.instance.addPlaylist(textController.text);
                 Navigator.pop(context);
               },
-              child: const Text("Add")
+              child: const Text(
+                "Add",
+                style: TextStyle(
+                  fontSize: 20
+                ),
+              )
             ),
+            
             
             
           ]
@@ -58,8 +66,8 @@ class MainPage extends StatelessWidget {
         child: Dismissible(
           direction: DismissDirection.endToStart,
           key: ValueKey(playlist.id),
-          onDismissed: (direction) async {
-            await deletePlaylist(playlist.id, context);
+          onDismissed: (direction) {
+             deletePlaylist(playlist.id, context);
           },
           background: Container(
             color: Colors.red,
@@ -78,6 +86,15 @@ class MainPage extends StatelessWidget {
                 fontSize: 24
               ),
             ),
+            trailing: const Icon(
+              CupertinoIcons.chevron_right,
+              size: 20,
+            ),
+            onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => PlaylistPage(playlist: playlist)),
+                );
+            },
             
           ),
         ),
@@ -126,24 +143,29 @@ class MainPage extends StatelessWidget {
                   const Text(
                     "Playlists", 
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 25,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => _showAddPlaylistDialog(context),
-                    icon: const Icon(Icons.add)
+                    icon: const Icon(
+                      Icons.add,
+                      size: 40,
+                    )
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  var playlist = snapshot.data![index];
-                  return _playlistTile(context, playlist);
-                },
+              Padding(
+                padding: const EdgeInsets.only(top: 15, left: 10),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    var playlist = snapshot.data![index];
+                    return _playlistTile(context, playlist);
+                  },
+                ),
               ),
             ],
           );
