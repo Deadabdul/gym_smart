@@ -22,6 +22,9 @@ class ExerciseBase {
 
   // Searches for exercises by name in the database.
   Future<List<DatabaseExercise>> searchExercisesByName(String name) async {
+    if (name.isEmpty) {
+      return await getAllExercises();
+    }
     List<String> wheres = [];
     List<String> args = [];
     if (name.isNotEmpty) {
