@@ -1,7 +1,9 @@
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:gym_smart/database/drift/database.dart';
+import 'package:gym_smart/pages/playlist_page.dart';
 import 'package:gym_smart/utils/utils.dart';
 
 class MainPage extends StatelessWidget {
@@ -24,6 +26,7 @@ class MainPage extends StatelessWidget {
                 border: OutlineInputBorder(),
               ),
             ),
+            Text(error, style: const TextStyle(color: Colors.red),),
             TextButton(
               onPressed: () async {
                 if (textController.text.isEmpty) {
@@ -35,8 +38,14 @@ class MainPage extends StatelessWidget {
                 await AppDatabase.instance.addPlaylist(textController.text);
                 Navigator.pop(context);
               },
-              child: const Text("Add")
+              child: const Text(
+                "Add",
+                style: TextStyle(
+                  fontSize: 20
+                ),
+              )
             ),
+            
             
             
           ]
@@ -44,45 +53,117 @@ class MainPage extends StatelessWidget {
       ) 
     );
   }
-  Padding _playlistTile(BuildContext context, Playlist playlist) {
+  Widget _playlistTile(BuildContext context, Playlist playlist) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Theme.of(context).colorScheme.surfaceVariant
-          
-        ),
-        height: 60,
-        clipBehavior: Clip.hardEdge,
-        child: Dismissible(
-          direction: DismissDirection.endToStart,
-          key: ValueKey(playlist.id),
-          onDismissed: (direction) async {
-            await deletePlaylist(playlist.id, context);
-          },
-          background: Container(
-            color: Colors.red,
-            child: const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Icon(Icons.delete),
-              ),
-            ),
-          ),
-          child: ListTile(
-            title: Text(
-              playlist.name,
-              style: const TextStyle(
-                fontSize: 24
-              ),
-            ),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => PlaylistPage(playlist: playlist))),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surfaceVariant
             
+          ),
+          height: 72,
+          clipBehavior: Clip.hardEdge,
+          child: Dismissible(
+            direction: DismissDirection.endToStart,
+            key: ValueKey(playlist.id),
+            onDismissed: (direction) {
+               deletePlaylist(playlist.id, context);
+            },
+            background: Container(
+              color: Colors.red,
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text("Delete", style: TextStyle(color: Colors.white),),
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        playlist.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          height: 1,
+                        ),
+                        
+                        textAlign: TextAlign.left,
+                      ),
+                      _playlistExercisesCount(playlist),
+                    ],
+                  ),
+                  const Icon(
+                    CupertinoIcons.chevron_right,
+                    size: 35,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _playlistExercisesCount(Playlist playlist) {
+    return StreamBuilder<int?>(
+                    stream: AppDatabase.instance.getExercisesCountFromPlaylist(playlist.id),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: snapshot.data.toString(),
+                                style: const TextStyle(
+                                  fontSize: 16
+                                )
+                              ),
+                              TextSpan(
+                                text: " Exercise${snapshot.data == 1 ? "" : "s"}",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey
+                                )
+                              )
+                            ]
+                          )
+                        );
+                      } else {
+                        return RichText(
+                          text: const TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "0",
+                                style: TextStyle(
+                                  fontSize: 20
+                                )
+                              ),
+                              TextSpan(
+                                text: " exercises",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.grey
+                                )
+                              )
+                            ]
+                          )
+                        );
+                      }
+                    },
+                  );
   }
 
   Future<void> deletePlaylist(int id, BuildContext context) async {
@@ -126,24 +207,30 @@ class MainPage extends StatelessWidget {
                   const Text(
                     "Playlists", 
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 33,
+                      fontWeight: FontWeight.bold
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => _showAddPlaylistDialog(context),
-                    icon: const Icon(Icons.add)
+                    icon: const Icon(
+                      Icons.add,
+                      size: 40,
+                    )
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  var playlist = snapshot.data![index];
-                  return _playlistTile(context, playlist);
-                },
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    var playlist = snapshot.data![index];
+                    return _playlistTile(context, playlist);
+                  },
+                ),
               ),
             ],
           );
@@ -159,11 +246,13 @@ class MainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'GYMSMART',
           style: TextStyle(
             fontSize: 24,
-            fontWeight: FontWeight.bold
+            fontFamily: GoogleFonts.robotoCondensed().fontFamily,
+            fontWeight: FontWeight.bold,
+            color: const Color.fromRGBO(200, 200, 200, 1)
           ),
         ),
         centerTitle: true,

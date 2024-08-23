@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_smart/database/exercise_base.dart';
 
-class ExerciseSearchDelegate extends SearchDelegate {
+class ExerciseSearchDelegate extends SearchDelegate<String?> {
   @override
   List<Widget>? buildActions(BuildContext context) {
     return <Widget>[
@@ -33,7 +33,7 @@ class ExerciseSearchDelegate extends SearchDelegate {
           return ListView.builder(
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
-              return exerciseTile(snapshot.data![index]);
+              return exerciseTile(snapshot.data![index], context);
             },
           );
         } else {
@@ -55,7 +55,7 @@ class ExerciseSearchDelegate extends SearchDelegate {
           return ListView.builder(
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
-              return exerciseTile(snapshot.data![index]);
+              return exerciseTile(snapshot.data![index], context);
             },
           );
         } else {
@@ -67,10 +67,11 @@ class ExerciseSearchDelegate extends SearchDelegate {
     );
   }
 
-  ListTile exerciseTile(DatabaseExercise exercise,) {
+  ListTile exerciseTile(DatabaseExercise exercise,  BuildContext context) {
     return ListTile(
       title: Text(exercise.name),
       subtitle: Text(exercise.muscleGroup),
+      onTap: () => close(context, exercise.name),
     );
   }
 }
