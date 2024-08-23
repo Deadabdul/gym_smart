@@ -209,13 +209,12 @@ class PlaylistPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  SizedBox(
-                    width: MediaQuery.sizeOf(context).width * 0.5,
-                    child: Text(
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text(
                       exercise.name,
                       style: const TextStyle(
                         fontSize: 22,
@@ -224,62 +223,62 @@ class PlaylistPage extends StatelessWidget {
                       
                       textAlign: TextAlign.left,
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      StreamBuilder<double?>(
-                        stream: AppDatabase.instance.getExercisePersonalRecord(exercise.id),
-                        builder: (context, snapshot) => RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: snapshot.data?.toStringAsFixed(1) ?? "N/A",
-                                style: const TextStyle(
-                                  fontSize: 15
-                                )
-                              ),
-                              TextSpan(
-                                text: " PR",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primaryFixedDim
-                                )
-                              ),
-                            ]
-                          )
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      StreamBuilder<int?>(
-                        stream: AppDatabase.instance.getSetCountFromExercise(exercise.id),
-                        builder: (context, snapshot) {
-                          return RichText(
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        StreamBuilder<double?>(
+                          stream: AppDatabase.instance.getExercisePersonalRecord(exercise.id),
+                          builder: (context, snapshot) => RichText(
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: snapshot.data.toString(),
+                                  text: snapshot.data?.toStringAsFixed(1) ?? "N/A",
                                   style: const TextStyle(
                                     fontSize: 15
                                   )
                                 ),
                                 TextSpan(
-                                  text: " Set${snapshot.data == 1 ? "" : "s"}",
-                                  style: const TextStyle(
+                                  text: " PR",
+                                  style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.grey
+                                    color: Theme.of(context).colorScheme.primaryFixedDim
                                   )
-                                )
+                                ),
                               ]
                             )
-                          );
-                        }
-                      )
-                    ],
-                  )
-                ],
+                          ),
+                        ),
+                        const SizedBox(width: 30),
+                        StreamBuilder<int?>(
+                          stream: AppDatabase.instance.getSetCountFromExercise(exercise.id),
+                          builder: (context, snapshot) {
+                            return RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: snapshot.data.toString(),
+                                    style: const TextStyle(
+                                      fontSize: 15
+                                    )
+                                  ),
+                                  TextSpan(
+                                    text: " Set${snapshot.data == 1 ? "" : "s"}",
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey
+                                    )
+                                  )
+                                ]
+                              )
+                            );
+                          }
+                        )
+                      ],
+                    )
+                  ],
+                ),
               ),
               const Icon(
                 CupertinoIcons.chevron_right,
