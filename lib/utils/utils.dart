@@ -37,13 +37,19 @@ openDialog(
     backgroundColor:  Theme.of(context).colorScheme.surfaceVariant,
     child: Container(
       width: MediaQuery.sizeOf(context).width * 0.7,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(15),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         
         children: [
-          Text(title),
-          const SizedBox(height: 20),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold
+            )
+          ),
+          const SizedBox(height: 10),
           child
         ],
       ),

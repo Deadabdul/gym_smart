@@ -20,7 +20,7 @@ class PlaylistPage extends StatelessWidget {
     }
     await AppDatabase.instance.addExerciseToPlaylist(playlist.id, exercise);
   }
-  void _showAddSetDialog(int exerciseId, BuildContext context) {
+  void _showAddSetDialog(String exerciseName, BuildContext context) {
     var reps = TextEditingController();
     var weight = TextEditingController();
     var error = "";
@@ -59,7 +59,7 @@ class PlaylistPage extends StatelessWidget {
                   });
                   return;
                 }
-                await AppDatabase.instance.addSet(exerciseId, int.parse(reps.text), double.parse(weight.text));
+                await AppDatabase.instance.addSet(exerciseName, int.parse(reps.text), double.parse(weight.text));
                 Navigator.pop(context);
               },
               child: const Text(
@@ -176,8 +176,8 @@ class PlaylistPage extends StatelessWidget {
     );
   }
 
-  Future<void> deleteExercise(int id, BuildContext context) async {
-    await AppDatabase.instance.deleteExerciseFromPlaylist(playlist.id, id);
+  Future<void> deleteExercise(String name, BuildContext context) async {
+    await AppDatabase.instance.deleteExerciseFromPlaylist(playlist.id, name);
     Flushbar(
       message: "Exercise Deleted",
       duration: const Duration(seconds: 1),
@@ -188,12 +188,12 @@ class PlaylistPage extends StatelessWidget {
 
   Widget exerciseTile(Exercise exercise, BuildContext context) {
     return GestureDetector(
-      onTap: () => _showAddSetDialog(exercise.id, context),
+      onTap: () => _showAddSetDialog(exercise.name, context),
       child: Dismissible(
         direction: DismissDirection.endToStart,
-        key: ValueKey(exercise.id),
+        key: ValueKey(exercise.name),
         onDismissed: (direction) {
-            deleteExercise(exercise.id, context);
+            deleteExercise(exercise.name, context);
         },
         background: Container(
           padding: const EdgeInsets.all(8.0),
@@ -227,7 +227,7 @@ class PlaylistPage extends StatelessWidget {
                     Row(
                       children: [
                         StreamBuilder<double?>(
-                          stream: AppDatabase.instance.getExercisePersonalRecord(exercise.id),
+                          stream: AppDatabase.instance.getExercisePersonalRecord(exercise.name),
                           builder: (context, snapshot) => RichText(
                             text: TextSpan(
                               children: [
@@ -251,7 +251,7 @@ class PlaylistPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 30),
                         StreamBuilder<int?>(
-                          stream: AppDatabase.instance.getSetCountFromExercise(exercise.id),
+                          stream: AppDatabase.instance.getSetCountFromExercise(exercise.name),
                           builder: (context, snapshot) {
                             return RichText(
                               text: TextSpan(

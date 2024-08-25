@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gym_smart/database/drift/database.dart';
 import 'package:gym_smart/pages/playlist_page.dart';
+import 'package:gym_smart/utils/types.dart';
 import 'package:gym_smart/utils/utils.dart';
 
 class MainPage extends StatelessWidget {
@@ -19,14 +20,19 @@ class MainPage extends StatelessWidget {
       StatefulBuilder(
         builder: (context, setState) => Column(
           children: [
-            TextField(
+            CupertinoTextField(
               controller: textController,
-              decoration: const InputDecoration(
-                labelText: "Playlist Name",
-                border: OutlineInputBorder(),
+              placeholder: "Playlist Name",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontFamily: GoogleFonts.istokWeb().fontFamily
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant + 0.1,
+                borderRadius: BorderRadius.circular(8)
               ),
             ),
-            Text(error, style: const TextStyle(color: Colors.red),),
+            error.isEmpty ? Container() : Text(error, style: const TextStyle(color: Colors.red),),
             TextButton(
               onPressed: () async {
                 if (textController.text.isEmpty) {
@@ -64,7 +70,7 @@ class MainPage extends StatelessWidget {
             color: Theme.of(context).colorScheme.surfaceVariant
             
           ),
-          height: 72,
+          height: 75,
           clipBehavior: Clip.hardEdge,
           child: Dismissible(
             direction: DismissDirection.endToStart,

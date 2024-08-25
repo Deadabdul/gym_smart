@@ -13,8 +13,10 @@ part 'database.g.dart';
 
 
 class Exercises extends Table {
-  IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
+
+  @override
+  Set<Column> get primaryKey => {name};
 
 }
 
@@ -23,8 +25,8 @@ class MySets extends Table {
   IntColumn get reps => integer()();
   RealColumn get weight => real()();
   DateTimeColumn get date => dateTime().withDefault(currentDate)();
-  IntColumn get exerciseId =>
-      integer().references(Exercises, #id, onDelete: KeyAction.cascade)();
+  TextColumn get exerciseName =>
+      text().references(Exercises, #name, onDelete: KeyAction.cascade)();
 
 }
 
@@ -38,8 +40,8 @@ class PlaylistExercises extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get playlistId =>
       integer().references(Playlists, #id, onDelete: KeyAction.cascade)();
-  IntColumn get exerciseId =>
-      integer().references(Exercises, #id, onDelete: KeyAction.cascade)();
+  TextColumn get exerciseName =>
+      text().references(Exercises, #name, onDelete: KeyAction.cascade)();
 }
 
 
@@ -54,7 +56,7 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _singleton;
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
 
@@ -77,33 +79,30 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> addExerciseToPlaylist(int playlistId, String exercise) async {
-    var exerciseCount  = exercises.name.count(filter: exercises.name.equals(exercise));
-    var exerciseQuery = selectOnly(exercises)
-      ..addColumns([exerciseCount]);
-    var count = await exerciseQuery.map((row) => row.read(exerciseCount)).getSingle();
-    
-    int id;
-    if (count != null && count != 0) {
-      var query = select(exercises)..where((tbl) => tbl.name.equals(exercise));
-      id = await query.getSingle().then((exercise) =>exercise.id);
-    } else {
-      id = await into(exercises).insert(ExercisesCompanion.insert(name: exercise));
-    }
-
-    exerciseCount = playlistExercises.id.count(filter: playlistExercises.exerciseId.equals(id));
+    var exerciseCount = playlistExercises.id.count(filter: playlistExercises.exerciseName.equals(exercise));
     var playlistExerciseQuery = selectOnly(playlistExercises)
       ..addColumns([exerciseCount]);
-    count = await playlistExerciseQuery.map((row) => row.read(exerciseCount)).getSingle();
+    var count = await playlistExerciseQuery.map((row) => row.read(exerciseCount)).getSingle();
     if (count != null && count != 0) {
       return;
     }
+
+
+    exerciseCount  = exercises.name.count(filter: exercises.name.equals(exercise));
+    var exerciseQuery = selectOnly(exercises)
+      ..addColumns([exerciseCount]);
+    count = await exerciseQuery.map((row) => row.read(exerciseCount)).getSingle();
+    if (count == null || count == 0) {
+      await into(exercises).insert(ExercisesCompanion.insert(name: exercise));
+    }
+
     await into(playlistExercises)
-        .insert(PlaylistExercisesCompanion.insert(playlistId: playlistId, exerciseId: id));
+        .insert(PlaylistExercisesCompanion.insert(playlistId: playlistId, exerciseName: exercise));
   }
 
-  Future<void> addSet(int exerciseId, int reps, double weightInLbs) async {
+  Future<void> addSet(String exercise, int reps, double weightInLbs) async {
     await into(mySets)
-        .insert(MySetsCompanion.insert(exerciseId: exerciseId, reps: reps, weight: weightInLbs));
+        .insert(MySetsCompanion.insert(exerciseName: exercise, reps: reps, weight: weightInLbs));
   }
 
   Stream<List<Playlist>> getPlaylists() {
@@ -112,36 +111,29 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<Exercise>> getExercisesFromPlaylist(int playlistId)  {
     return (select(exercises)
         .join([
-          leftOuterJoin(playlistExercises, playlistExercises.exerciseId.equalsExp(exercises.id))
+          leftOuterJoin(playlistExercises, playlistExercises.exerciseName.equalsExp(exercises.name))
         ])
         ..where(playlistExercises.playlistId.equals(playlistId)))
     .watch().map((rows) => rows.map((row) => row.readTable(exercises)).toList());
   }
   Stream<int?> getExercisesCountFromPlaylist(int playlistId)  {
-    var amountOfExerceses = exercises.id.count();
-    var query = select(exercises)
-        .join([
-          leftOuterJoin(
-            playlistExercises, 
-            playlistExercises.exerciseId.equalsExp(exercises.id),
-            useColumns: false
-          )
-        ])..where(playlistExercises.playlistId.equals(playlistId))
+    var amountOfExerceses = exercises.name.count( filter: playlistExercises.playlistId.equals(playlistId) );
+    var query = selectOnly(exercises)
         ..addColumns([amountOfExerceses]);
     return query.map((row) => row.read(amountOfExerceses)).watchSingle();
   }
   Stream<List<Exercise>> getAllExercises() {
     return select(exercises).watch();
   }
-  Stream<List<MySet>> getSets(int exerciseId) {
+  Stream<List<MySet>> getSets(String exerciseName) {
     return (select(mySets)
-        ..where((mySet) => mySet.exerciseId.equals(exerciseId)))
+        ..where((mySet) => mySet.exerciseName.equals(exerciseName)))
     .watch();
   }
-  Future<void> deleteExerciseFromPlaylist(int playlistId, int exerciseId) async {
+  Future<void> deleteExerciseFromPlaylist(int playlistId, String exerciseName) async {
     await (delete(playlistExercises)
         ..where((tbl) => tbl.playlistId.equals(playlistId) 
-        & tbl.exerciseId.equals(exerciseId)))
+        & tbl.exerciseName.equals(exerciseName)))
     .go();
   }
   Future<void> deletePlaylist(int playlistId) async {
@@ -155,15 +147,15 @@ class AppDatabase extends _$AppDatabase {
     .go();
   }
   
-  Stream<double?> getExercisePersonalRecord(int exerciseId) {
-    var max = mySets.weight.max(filter: mySets.exerciseId.equals(exerciseId));
+  Stream<double?> getExercisePersonalRecord(String exerciseName) {
+    var max = mySets.weight.max(filter: mySets.exerciseName.equals(exerciseName));
     var query = selectOnly(mySets)
       ..addColumns([max]);
     return query.map((row) => row.read(max)).watchSingle();
   }
 
-  Stream<int?> getSetCountFromExercise(int exerciseId) {
-    var count = mySets.id.count(filter: mySets.exerciseId.equals(exerciseId));
+  Stream<int?> getSetCountFromExercise(String exerciseName) {
+    var count = mySets.id.count(filter: mySets.exerciseName.equals(exerciseName));
     var query = selectOnly(mySets)
       ..addColumns([count]);
     return query.map((row) => row.read(count)).watchSingle();
