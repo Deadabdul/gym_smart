@@ -130,6 +130,24 @@ class AppDatabase extends _$AppDatabase {
         ..where((mySet) => mySet.exerciseName.equals(exerciseName)))
     .watch();
   }
+  Stream<double?> getExercisePersonalRecord(String exerciseName) {
+    var max = mySets.weight.max(filter: mySets.exerciseName.equals(exerciseName));
+    var query = selectOnly(mySets)
+      ..addColumns([max]);
+    return query.map((row) => row.read(max)).watchSingle();
+  }
+
+  Stream<int?> getSetCountFromExercise(String exerciseName) {
+    var count = mySets.id.count(filter: mySets.exerciseName.equals(exerciseName));
+    var query = selectOnly(mySets)
+      ..addColumns([count]);
+    return query.map((row) => row.read(count)).watchSingle();
+  }
+  Stream<List<MySet>> getSetsFromExercise(String exerciseName) {
+    return (select(mySets)
+        ..where((mySet) => mySet.exerciseName.equals(exerciseName)))
+    .watch();
+  }
   Future<void> deleteExerciseFromPlaylist(int playlistId, String exerciseName) async {
     await (delete(playlistExercises)
         ..where((tbl) => tbl.playlistId.equals(playlistId) 
@@ -147,17 +165,5 @@ class AppDatabase extends _$AppDatabase {
     .go();
   }
   
-  Stream<double?> getExercisePersonalRecord(String exerciseName) {
-    var max = mySets.weight.max(filter: mySets.exerciseName.equals(exerciseName));
-    var query = selectOnly(mySets)
-      ..addColumns([max]);
-    return query.map((row) => row.read(max)).watchSingle();
-  }
-
-  Stream<int?> getSetCountFromExercise(String exerciseName) {
-    var count = mySets.id.count(filter: mySets.exerciseName.equals(exerciseName));
-    var query = selectOnly(mySets)
-      ..addColumns([count]);
-    return query.map((row) => row.read(count)).watchSingle();
-  }
+  
 }

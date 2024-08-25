@@ -2,6 +2,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gym_smart/database/drift/database.dart';
+import 'package:gym_smart/pages/exercise_page.dart';
 import 'package:gym_smart/search_delegates/exercise_search_delegate.dart';
 import 'package:gym_smart/utils/utils.dart';
 
@@ -188,7 +189,9 @@ class PlaylistPage extends StatelessWidget {
 
   Widget exerciseTile(Exercise exercise, BuildContext context) {
     return GestureDetector(
-      onTap: () => _showAddSetDialog(exercise.name, context),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => ExercisePage(exercise: exercise))
+      ),
       child: Dismissible(
         direction: DismissDirection.endToStart,
         key: ValueKey(exercise.name),
