@@ -204,7 +204,7 @@ class PlaylistPage extends StatelessWidget {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(15),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -217,7 +217,7 @@ class PlaylistPage extends StatelessWidget {
                     Text(
                       exercise.name,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 21,
                         height: 1,
                       ),
                       
